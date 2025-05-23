@@ -29,6 +29,6 @@ spec.add_development_dependency "rubocop", "~> 1.63"
 spec.add_development_dependency "rubocop-performance"
 spec.add_development_dependency "rubocop-rspec", "~> 2.0"
 
-
+spec.executables = ["code_decode_rm"]
 
 end
