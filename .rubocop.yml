@@ -1,0 +1,17 @@
+inherit_from: .rubocop_todo.yml
+
+AllCops:
+  TargetRubyVersion: 3.3
+  Exclude:
+    - "Gemfile"
+    - "Rakefile"
+    - "spec/**/*_spec.rb"
+
+Layout/LineLength:
+  Max: 120
+
+Style/Documentation:
+  Enabled: false
+
+  # RSpec/ExampleLength:
+#   Enabled: false
