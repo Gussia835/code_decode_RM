@@ -1,59 +1,63 @@
 module CodeDecodeRM
   class Parser
-    REGISTER_PATTERN = /([A-Za-z])(1*)/i
     INSTRUCTION_REGEX = {
-      assign: /(\d+):\s*([A-Za-z]1*)\s*<=\s*(-?\d+)/,
-      inc: /(\d+):\s*([A-Za-z]1*)\s*<=\s*\w+\+1/,
-      dec: /(\d+):\s*([A-Za-z]1*)\s*<=\s*\w+-1/,
-      cond: /(\d+):\s*if\s+([A-Za-z]1*)\s*(<|>|<=|>=|=|!=)\s*(-?\d+)\s+goto\s+(\d+)\s+else\s+goto\s+(\d+)/,
-      stop: /(\d+):\s*stop/
+      assign: /(\d+):\s*([xX]1+)\s*<-\s*(\d+)/,
+      inc:    /(\d+):\s*([xX]1+)\s*<-\s*\2\+1/,
+      dec:    /(\d+):\s*([xX]1+)\s*<-\s*\2-1/,
+      cond:   /(\d+):\s*if\s+([xX]1+)\s*=\s*([xX]1+)\s+goto\s+(\d+)\s+else\s+goto\s+(\d+)/,
+      stop:   /(\d+):\s*stop/
     }.freeze
 
     def parse(input)
       input.lines.map { |line| parse_line(line.strip) }
+              .compact
     end
 
     private
 
     def parse_line(input)
-      case input
-      when INSTRUCTION_REGEX[:assign] then parse_assign($1, $2, $3)
-      when INSTRUCTION_REGEX[:inc] then parse_inc($1, $2)
-      when INSTRUCTION_REGEX[:dec] then parse_dec($1, $2)
-      when INSTRUCTION_REGEX[:cond] then parse_cond($1, $2, $3, $4, $5, $6)
-      when INSTRUCTION_REGEX[:stop] then parse_stop($1)
+      
+      if input.match?(/[xX][^1]/)
+        raise ArgumentError, "Invalid register format"
       end
+       case input
+      when INSTRUCTION_REGEX[:assign] then parse_assign($1, $2, $3)
+      when INSTRUCTION_REGEX[:inc]    then parse_inc($1, $2)
+      when INSTRUCTION_REGEX[:dec]    then parse_dec($1, $2)
+      when INSTRUCTION_REGEX[:cond]   then parse_cond($1, $2, $3, $4, $5)
+      when INSTRUCTION_REGEX[:stop]   then parse_stop($1)
+      else
+        raise ArgumentError, "Invalid instruction: #{input}"
+      end
+    rescue ArgumentError => e
+      raise e # Пробрасываем уже обработанные ошибки регистра
     end
+  
 
-    def normalize_register(reg)
-      match = reg.match(REGISTER_PATTERN)
-      raise ArgumentError, "Invalid register format: #{reg}" unless match
-
-      letter = match[1].upcase
-      ones = match[2].size
-      index = letter.ord - 'A'.ord + 1
-      "X#{'1' * (index + ones - 1)}"
+    def register_to_index(reg)
+      reg.match(/^x(1+)$/i)[1].size
+    rescue
+      raise ArgumentError, "Invalid register format: #{reg}"
     end
 
     def parse_assign(label, reg, value)
-      [1, label.to_i, normalize_register(reg), value.to_i]
+      [1, label.to_i, register_to_index(reg), value.to_i]
     end
 
     def parse_inc(label, reg)
-      [2, label.to_i, normalize_register(reg)]
+      [2, label.to_i, register_to_index(reg)]
     end
 
     def parse_dec(label, reg)
-      [3, label.to_i, normalize_register(reg)]
+      [3, label.to_i, register_to_index(reg)]
     end
 
-    def parse_cond(label, reg, operator, value, true_label, false_label)
+    def parse_cond(label, reg1, reg2, true_label, false_label)
       [
         4,
         label.to_i,
-        normalize_register(reg),
-        operator.to_sym,
-        value.to_i,
+        register_to_index(reg1),
+        register_to_index(reg2),
         true_label.to_i,
         false_label.to_i
       ]

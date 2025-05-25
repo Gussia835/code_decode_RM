@@ -1,30 +1,28 @@
+# decoder.rb
+require 'prime'
+
 module CodeDecodeRM
   class Decoder
-    PRIMES_CACHE = Prime.each.take(100).freeze
+    PRIMES = [2, 3, 5, 7, 11, 13].freeze
 
-    def decode(number)
-      return [] if number <= 1
-
-      Prime.prime_division(number).map.with_index do |(prime, exp), i|
-        decode_instruction(exp)
-      end
+    def decode(numbers)
+      numbers.map { |num| decode_instruction(num) }
     end
 
     private
 
-    def decoode_instruction(exp)
-      instruction = []
-      current = exp
+    def decode_instruction(number)
+      return [] if number == 1
 
-      [2,3,5,7,11].each do |p|
-        count = 0
-        while current % p == 0
-          current /= p
-          count += 1
-        end
-        instruction << count - 1 if count > 0
-      end
-      instruction
+      factors = Prime.prime_division(number).to_h
+      
+      # Извлекаем параметры по позициям простых чисел
+      params = PRIMES.map do |prime|
+        exponent = factors.fetch(prime, 0) - 1
+        exponent >= 0 ? exponent : nil
+      end.compact
+
+      params
     end
   end
 end

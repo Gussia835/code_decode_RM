@@ -1,19 +1,20 @@
+require 'prime'
+
 module CodeDecodeRM
   class Encoder
-    PRIMES_CACHE = Prime.each.take(100).freeze
+    PRIMES = [2, 3, 5, 7, 11, 13].freeze
 
     def encode(instructions)
-      instructions.each_with_index.inject(1) do |product, (instr, i)|
-        product * (PRIMES_CACHE[i] ** encode_instruction(instr))
-      end
+      instructions.map { |instr| encode_instruction(instr) }
     end
 
     private
 
     def encode_instruction(instr)
-      primes = [2, 3, 5, 7, 11]
       instr.each_with_index.inject(1) do |product, (value, idx)|
-        product * (primes[idx] ** (value + 1))
+        prime = PRIMES[idx] || next
+        exponent = value.negative? ? 0 : value + 1
+        product * (prime ** exponent)
       end
     end
   end
