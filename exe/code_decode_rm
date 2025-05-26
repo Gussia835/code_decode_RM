@@ -1,7 +1,0 @@
-
-require "code_decode_rm"
-
-input = ARGF.read
-program = CodeDecodeRM::Parser.new.parse(input)
-encoded = CodeDecodeRM::Encoder.new.encode(program)
-puts "Encoded: #{encoded}"

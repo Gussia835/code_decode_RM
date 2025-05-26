@@ -1,5 +1,3 @@
-# spec/code_decode_rm/parser_spec.rb
-
 require 'spec_helper'
 require_relative '../../lib/code_decode_rm/parser'
 
@@ -24,8 +22,8 @@ RSpec.describe CodeDecodeRM::Parser do
       end
 
       it 'парсит условный переход' do
-        input = "4:if x1 = x11 goto 5 else goto 6"
-        expect(parser.parse(input)).to eq([[4, 4, 1, 2, 5, 6]])
+        input = "4:if x1 = 2 goto 5 else goto 6"
+        expect(parser.parse(input)).to eq([[4, 4, 1, '==', 2, 5, 6]])
       end
 
       it 'парсит команду stop' do
